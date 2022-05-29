@@ -37,7 +37,7 @@ balance_BNB = float(balance_BNB_dict['free'])
 balance_BUSD_dict = client.get_asset_balance(asset='BUSD')
 balance_BUSD = float(balance_BUSD_dict['free'])
 
-# for i in range(0, len(pairs)):
+# # for i in range(0, len(pairs)):
 #     balance_basecoin_dict = client.get_asset_balance(asset=symbol_basecoin)
 #     balance_basecoin = float(balance_basecoin_dict['free'])
 #     balance_alt_dict = client.get_asset_balance(asset=symbol_altcoin1)
