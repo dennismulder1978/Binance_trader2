@@ -23,31 +23,34 @@ for i in range(0, len(symbol_altcoin_list)):
     pairs.append(str(symbol_altcoin_list[i]) + symbol_basecoin)
 
 
-print(arg_list)
-print(symbol_altcoin_list)
-print(symbol_basecoin)
-print(pairs)
+# open connection with api, collect coins data
+client = Client(Constants.api_key, Constants.api_secret)
 
-# # open connection with api, collect coins data
-# client = Client(Constants.api_key, Constants.api_secret)
-#
-# closing_list = ma_trade_logic(
-#     client.get_historical_klines(pair, Client.KLINE_INTERVAL_5MINUTE, "1 day ago UTC"))
-#
-# prices = client.get_all_tickers()
-#
-# # BNB, BUSD, basecoin and altcoin free balance
-# balance_BNB_dict = client.get_asset_balance(asset='BNB')
-# balance_BNB = float(balance_BNB_dict['free'])
-# balance_BUSD_dict = client.get_asset_balance(asset='BUSD')
-# balance_BUSD = float(balance_BUSD_dict['free'])
-#
-# balance_basecoin_dict = client.get_asset_balance(asset=symbol_basecoin)
-# balance_basecoin = float(balance_basecoin_dict['free'])
-# balance_alt_dict = client.get_asset_balance(asset=symbol_altcoin1)
-# balance_altcoin = float(balance_alt_dict['free'])
-#
+# multiple closing lists for each pair
+closing_list_list = []
+
+for i in range(0, len(pairs)):
+    closing_list = ma_trade_logic(
+    client.get_historical_klines(pairs[i], Client.KLINE_INTERVAL_5MINUTE, "1 day ago UTC"))
+    closing_list_list.append(closing_list)
+
+print(closing_list_list)
+
+
+# BNB, BUSD, basecoin and altcoin free balance
+balance_BNB_dict = client.get_asset_balance(asset='BNB')
+balance_BNB = float(balance_BNB_dict['free'])
+balance_BUSD_dict = client.get_asset_balance(asset='BUSD')
+balance_BUSD = float(balance_BUSD_dict['free'])
+
+# for i in range(0, len(pairs)):
+#     balance_basecoin_dict = client.get_asset_balance(asset=symbol_basecoin)
+#     balance_basecoin = float(balance_basecoin_dict['free'])
+#     balance_alt_dict = client.get_asset_balance(asset=symbol_altcoin1)
+#     balance_altcoin = float(balance_alt_dict['free'])
+# #
 # # ALT-BASE price
+# prices = client.get_all_tickers()
 # altcoin_price = 100000000000000000000  # alternative price
 # for each in prices:
 #     if each['symbol'] == pair:
