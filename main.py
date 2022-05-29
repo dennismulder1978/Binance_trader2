@@ -29,9 +29,7 @@ closing_list = []
 
 for i in range(0, len(pairs)):
     closing_list.append(ma_trade_logic(
-        client.get_historical_klines(pairs[i], Client.KLINE_INTERVAL_12HOUR, "1 day ago UTC")))
-print(pairs)
-print(closing_list)
+        client.get_historical_klines(pairs[i], Client.KLINE_INTERVAL_5MINUTE, "1 day ago UTC")))
 
 # BNB, BUSD, basecoin and altcoin free balance
 balance_BNB_dict = client.get_asset_balance(asset='BNB')
