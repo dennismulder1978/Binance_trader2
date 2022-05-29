@@ -17,25 +17,21 @@ else:
     symbol_altcoin_list = ['SOL', 'MANA', 'ETH']  # Default ALT coin list
     symbol_basecoin = 'BUSD'
 
-
 pairs = []  # creating pairs list, ALT-BASE pair
 for i in range(0, len(symbol_altcoin_list)):
     pairs.append(str(symbol_altcoin_list[i]) + symbol_basecoin)
-
 
 # open connection with api, collect coins data
 client = Client(Constants.api_key, Constants.api_secret)
 
 # multiple closing lists for each pair
-closing_list_list = []
+closing_list = []
 
 for i in range(0, len(pairs)):
-    closing_list = ma_trade_logic(
-    client.get_historical_klines(pairs[i], Client.KLINE_INTERVAL_5MINUTE, "1 day ago UTC"))
-    closing_list_list.append(closing_list)
-
-print(closing_list_list)
-
+    closing_list.append(ma_trade_logic(
+        client.get_historical_klines(pairs[i], Client.KLINE_INTERVAL_12HOUR, "1 day ago UTC")))
+print(pairs)
+print(closing_list)
 
 # BNB, BUSD, basecoin and altcoin free balance
 balance_BNB_dict = client.get_asset_balance(asset='BNB')
