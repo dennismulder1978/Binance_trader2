@@ -1,3 +1,14 @@
+from Secret import Constants
+from binance import Client
+from datetime import datetime
+client = Client(Constants.api_key, Constants.api_secret)
+
+
+def ma_trade_logic(pair):
+    bar_list = client.get_historical_klines(pair, Client.KLINE_INTERVAL_5MINUTE, "1 day ago UTC")
+    return [float(i[4]) for i in bar_list]  # list of pos[4] (is closing price) per time period, also str to float
+
+
 def ma(input_list, length):
     input_list = input_list[:-1]  # pop off last (=incomplete) time-period
     short_list = input_list[-length::]  # shorten list to requested length
@@ -9,10 +20,6 @@ def ma(input_list, length):
     return result
 
 
-def ma_trade_logic(bar_list):
-    return [float(i[4]) for i in bar_list]  # list of pos[4] (is closing price) per time period, also str to float
-
-
 def log(log_list):
     final_string = ",".join(log_list)
     try:
@@ -20,13 +27,12 @@ def log(log_list):
     except FileNotFoundError:
         with open('Secret/log.csv', 'w') as g:
             g.write("Action," +
-                    "ALTcoin," +
-                    "BASEcoin," +
-                    "Buy amount," +
+                    "Pair," +
+                    "Balances ALTcoin," +
                     "Altcoin price," +
                     "MA_6h," +
                     "MA_18h," +
-                    "balance ALTcoin," +
+                    "Buy amount," +
                     "balance BASE_coin," +
                     "datetime\n")
             g.close()
@@ -52,3 +58,27 @@ def buy_sell_action_log(stringer):
         f.write(stringer + '\n')
         f.close()
     return
+
+
+def buy(pair, buy_amount, altcoin_price):
+    try:
+        buy_order = client.order_market_buy(symbol=pair, quoteOrderQty=buy_amount)
+        buy_sell_action_log(f'Buy,{pair},{altcoin_price},BASEcoin {buy_amount},{datetime.now()},none')
+        print('Action = Buy')
+        return 'Buy'
+    except Exception as e:
+        buy_sell_action_log(f'Buy failed,{pair},{altcoin_price},BASEcoin {buy_amount},{datetime.now()},{e}')
+        print(f'Buy failed - {e}')
+        return f'Buy failed - {e}'
+
+
+def sell(pair, balance_altcoin, altcoin_price):
+    try:
+        sell_order = client.order_market_sell(symbol=pair, quantity=balance_altcoin)
+        buy_sell_action_log(f'Sell,{pair},{altcoin_price},ALTcoin {balance_altcoin},{datetime.now()},none')
+        print('Action = Sell')
+        return 'Sell'
+    except Exception as e:
+        buy_sell_action_log(f'Sell failed,{pair},{altcoin_price},ALTcoin {balance_altcoin},{datetime.now()},{e}')
+        print(f'Sell failed - {e}')
+        return f'Sell failed - {e}'

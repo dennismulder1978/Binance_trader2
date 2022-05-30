@@ -1,8 +1,9 @@
 from Secret import Constants
-from Calculations import ma_trade_logic, ma, log, buy_sell_action_log
+from Calculations import ma_trade_logic, ma, log, buy, sell
 from binance import Client
 from datetime import datetime
 import sys
+
 
 # Command Line Argument
 arg_list = sys.argv
@@ -14,91 +15,96 @@ if len(arg_list) > 1:
         symbol_altcoin_list.append(arg_list[i])
     symbol_basecoin = str(arg_list[-1])
 else:
-    symbol_altcoin_list = ['SOL', 'MANA', 'ETH']  # Default ALT coin list
+    symbol_altcoin_list = ['SOL', 'MANA', 'SAND']  # Default ALT coin list
     symbol_basecoin = 'BUSD'
 
-pairs = []  # creating pairs list, ALT-BASE pair
-for i in range(0, len(symbol_altcoin_list)):
-    pairs.append(str(symbol_altcoin_list[i]) + symbol_basecoin)
+pairs = {}  # creating pairs dict, ALT: ALT-BASE-pair
+for each in symbol_altcoin_list:
+    pairs[each] = str(each + symbol_basecoin)
+
 
 # open connection with api, collect coins data
 client = Client(Constants.api_key, Constants.api_secret)
 
-# multiple closing lists for each pair
-closing_list = []
 
-for i in range(0, len(pairs)):
-    closing_list.append(ma_trade_logic(
-        client.get_historical_klines(pairs[i], Client.KLINE_INTERVAL_5MINUTE, "1 day ago UTC")))
+# multiple closing-price lists for each pair and ma_6 and ma_18 of each pair
+closing_list = {}
+ma_6 = {}
+ma_18 = {}
+for each in symbol_altcoin_list:
+    closing_list[pairs[each]] = ma_trade_logic(pairs[each])
+    ma_6[pairs[each]] = round(ma(closing_list[pairs[each]], 12 * 6), 8)  # use 12* (6 hours) b.o. 5min interval
+    ma_18[pairs[each]] = round(ma(closing_list[pairs[each]], 12 * 18), 8)  # use 12 * (18 hours) b.o. 5min interval
+
 
 # BNB, BUSD, basecoin and altcoin free balance
 balance_BNB_dict = client.get_asset_balance(asset='BNB')
 balance_BNB = float(balance_BNB_dict['free'])
 balance_BUSD_dict = client.get_asset_balance(asset='BUSD')
 balance_BUSD = float(balance_BUSD_dict['free'])
+balance_BASEcoin_dict = client.get_asset_balance(asset=symbol_basecoin)
+balance_BASEcoin = float(balance_BASEcoin_dict['free'])
 
-# # for i in range(0, len(pairs)):
-#     balance_basecoin_dict = client.get_asset_balance(asset=symbol_basecoin)
-#     balance_basecoin = float(balance_basecoin_dict['free'])
-#     balance_alt_dict = client.get_asset_balance(asset=symbol_altcoin1)
-#     balance_altcoin = float(balance_alt_dict['free'])
-# #
-# # ALT-BASE price
-# prices = client.get_all_tickers()
-# altcoin_price = 100000000000000000000  # alternative price
-# for each in prices:
-#     if each['symbol'] == pair:
-#         altcoin_price = float(each['price'])
-#
-# # Determine the MA's
-# ma_6 = round(ma(closing_list, 12 * 6), 8)  # use 12* (6 hours) b.o. 5min interval
-# ma_18 = round(ma(closing_list, 12 * 18), 8)  # use 12 * (18 hours) b.o. 5min interval
-# print(f'MA-6 {pair}: {ma_6}')
-# print(f'MA-18 {pair}: {ma_18}')
-#
-# # Buy or Sell? that's the question
-# log_list = []
-# buy_amount = int(0)
-# if (ma_6 >= ma_18) & (balance_altcoin == 0) & (balance_basecoin != 0):  # Buy order
-#     try:
-#         buy_amount = int(0.99 * balance_basecoin)  # amount of BASEcoin to spend, ie 99%
-#         buy_order = client.order_market_buy(symbol=pair, quoteOrderQty=buy_amount)
-#         log_list.append('Buy')
-#         buy_sell_action_log(f'Buy,{pair},{altcoin_price},BASEcoin {buy_amount},{datetime.now()},none')
-#         print('Action = Buy')
-#     except Exception as e:
-#         buy_sell_action_log(f'Buy failed,{pair},{altcoin_price},BASEcoin {buy_amount},{datetime.now()},{e}')
-#         log_list.append(f'Buy failed - {e}')
-#         print(f'Buy failed - {e}')
-#
-# elif (ma_6 < ma_18) & (balance_altcoin != 0):  # sell order
-#     try:
-#         sell_order = client.order_market_sell(symbol=pair, quantity=balance_altcoin)
-#         log_list.append('Sell')
-#         buy_sell_action_log(f'Sell,{pair},{altcoin_price},ALTcoin {balance_altcoin},{datetime.now()},none')
-#         print('Action = Sell')
-#     except Exception as e:
-#         buy_sell_action_log(f'Sell failed,{pair},{altcoin_price},ALTcoin {balance_altcoin},{datetime.now()},{e}')
-#         log_list.append(f'Sell failed - {e}')
-#         print(f'Sell failed - {e}')
-#
-# else:
-#     log_list.append('No action')
-#     print('Action = Do nothing')
-#
-# # register all the action
-# log_list.append(str(symbol_altcoin1))
-# log_list.append(str(symbol_basecoin))
-# log_list.append(str(buy_amount))
-# log_list.append(str(altcoin_price))
-# log_list.append(str(ma_6))
-# log_list.append(str(ma_18))
-# log_list.append(str(balance_altcoin))
-# log_list.append(str(balance_basecoin))
-# log_list.append(str(datetime.now()))
-# log(log_list)
-#
-#
+balance_ALTcoin_dict = {}
+for coin in symbol_altcoin_list:
+    balance_ALTcoin_dict[coin] = float(dict(client.get_asset_balance(asset=coin))['free'])
+
+
+# ALT-BASE price
+prices = client.get_all_tickers()
+altcoin_price = {}
+for each in prices:
+    for coin in symbol_altcoin_list:
+        if each['symbol'] == pairs[coin]:
+            altcoin_price[pairs[coin]] = float(each['price'])
+
+print(f'Pairs: {pairs}')
+print(f'Balances: {balance_ALTcoin_dict}')
+print(f'Balances: BASEcoin: {balance_BASEcoin}, BNB: {balance_BNB}, BUSD: {balance_BUSD}')
+print(f'The ALT-BASEcoin prices: {altcoin_price}')
+print(f'MA-6 : {ma_6}')
+print(f'MA-18 : {ma_18}')
+
+# fraction of BASEcoin te spend:
+pair_count = len(pairs)
+buy_amount = 0
+if balance_BASEcoin > 10:
+    for coin in balance_ALTcoin_dict:
+        if balance_ALTcoin_dict[coin] != 0:
+            pair_count -= 1
+    try:
+        buy_amount = int(balance_BASEcoin / pair_count)
+    except Exception as e:
+        print(e)
+
+    print(f'Buy amount: int({balance_BASEcoin} / {pair_count}) = {buy_amount}')
+
+# Buy or Sell? that's the question
+
+for coin in symbol_altcoin_list:
+    log_list = []
+    if (ma_6[pairs[coin]] >= ma_18[pairs[coin]]) & (balance_ALTcoin_dict[coin] == 0) & (balance_BASEcoin != 0):
+        log_list.append(buy(pairs[coin], buy_amount, altcoin_price[coin]))  # Buy order
+    elif (ma_6[pairs[coin]] < ma_18[pairs[coin]]) & (balance_ALTcoin_dict[coin] != 0):
+        log_list.append(sell(pairs[coin], balance_ALTcoin_dict[coin], altcoin_price[coin]))  # sell order
+    else:
+        log_list.append('No action')
+        print('Action = Do nothing')
+
+
+    # register all the action
+    log_list.append(str(pairs[coin]))
+    log_list.append(str(balance_ALTcoin_dict[coin]))
+    log_list.append(str(altcoin_price[pairs[coin]]))
+    log_list.append(str(ma_6[pairs[coin]]))
+    log_list.append(str(ma_18[pairs[coin]]))
+    log_list.append(str(buy_amount))
+    log_list.append(str(balance_BASEcoin))
+    log_list.append(str(datetime.now()))
+
+    log(log_list)
+
+
 # #  adding BNB to balance
 # BNB_log_list = []
 # if (balance_BNB < 0.1) & (balance_BUSD > 10):
@@ -124,4 +130,5 @@ balance_BUSD = float(balance_BUSD_dict['free'])
 # BNB_log_list.append(str(balance_BNB))
 # BNB_log_list.append(str(balance_BUSD))
 # BNB_log_list.append(str(datetime.now()))
+# BNB_log_list.append('na')
 # log(BNB_log_list)
