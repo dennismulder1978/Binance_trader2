@@ -1,5 +1,5 @@
 from Secret import Constants
-from Calculations import ma_trade_logic, ma, log, buy, sell, error_log
+from functions import ma_trade_logic, ma, log, buy, sell, error_log
 from binance import Client
 from datetime import datetime
 import sys
