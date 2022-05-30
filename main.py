@@ -1,5 +1,5 @@
 from Secret import Constants
-from functions import ma_trade_logic, ma, log, buy, sell, error_log
+from functions import ma_trade_logic, ma, log, buy, sell, error_log, buy_sell_action_log
 from binance import Client
 from datetime import datetime
 import sys
@@ -87,12 +87,12 @@ for coin in symbol_altcoin_list:
         try:
             log_list.append(buy(pairs[coin], buy_amount, altcoin_price[pairs[coin]]))  # Buy order
         except Exception as e:
-            error_log(f'Buy,{pairs[coin]},{e},{datetime.now()}')
+            error_log(f'Buy failed,{pairs[coin]},{e},{datetime.now()}')
     elif (ma_6[pairs[coin]] < ma_18[pairs[coin]]) & (balance_ALTcoin_dict[coin] != 0):
         try:
             log_list.append(sell(pairs[coin], balance_ALTcoin_dict[coin], altcoin_price[pairs[coin]]))  # sell order
         except Exception as e:
-            error_log(f'Sell,{pairs[coin]},{e},{datetime.now()}')
+            error_log(f'Sell failed,{pairs[coin]},{e},{datetime.now()}')
     else:
         log_list.append('No action')
         print('Action = Do nothing')
@@ -110,30 +110,30 @@ for coin in symbol_altcoin_list:
     log(log_list)
 
 
-# #  adding BNB to balance
-# BNB_log_list = []
-# if (balance_BNB < 0.1) & (balance_BUSD > 10):
-#     try:
-#         buy_order = client.order_market_buy(symbol='BNBBUSD', quoteOrderQty=10)
-#         buy_sell_action_log(f'Buy-BNB,BNBBUSD,na,na,{datetime.now()},none')
-#         BNB_log_list.append('Buy BNB')
-#         print('Action = Buy BNB')
-#     except Exception as e:
-#         buy_sell_action_log(f'Buy-BNB failed,BNBBUSD,na,na,{datetime.now()},{e}')
-#         BNB_log_list.append('Buy failed BNB')
-#         print(f'Buy-BNB failed - {e}')
-# else:
-#     BNB_log_list.append('Didn\'t buy BNB')
-#     print('Action = Didn\'t buy BNB')
-#
-# BNB_log_list.append('BNB')
-# BNB_log_list.append('BUSD')
-# BNB_log_list.append('na')
-# BNB_log_list.append('na')
-# BNB_log_list.append('na')
-# BNB_log_list.append('na')
-# BNB_log_list.append(str(balance_BNB))
-# BNB_log_list.append(str(balance_BUSD))
-# BNB_log_list.append(str(datetime.now()))
-# BNB_log_list.append('na')
-# log(BNB_log_list)
+#  adding BNB to balance
+BNB_log_list = []
+if (balance_BNB < 0.1) & (balance_BUSD > 10):
+    try:
+        buy_order = client.order_market_buy(symbol='BNBBUSD', quoteOrderQty=10)
+        buy_sell_action_log(f'Buy-BNB,BNBBUSD,na,na,{datetime.now()},none')
+        BNB_log_list.append('Buy BNB')
+        print('Action = Buy BNB')
+    except Exception as e:
+        error_log(f'Buy failed,BNBBUSD,{e},{datetime.now()}')
+        BNB_log_list.append('Buy failed BNB')
+        print(f'Buy-BNB failed - {e}')
+else:
+    BNB_log_list.append('Didn\'t buy BNB')
+    print('Action = Didn\'t buy BNB')
+
+BNB_log_list.append('BNB')
+BNB_log_list.append('BUSD')
+BNB_log_list.append('na')
+BNB_log_list.append('na')
+BNB_log_list.append('na')
+BNB_log_list.append('na')
+BNB_log_list.append(str(balance_BNB))
+BNB_log_list.append(str(balance_BUSD))
+BNB_log_list.append(str(datetime.now()))
+BNB_log_list.append('na')
+log(BNB_log_list)
