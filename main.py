@@ -91,7 +91,6 @@ for coin in symbol_altcoin_list:
         log_list.append('No action')
         print('Action = Do nothing')
 
-
     # register all the action
     log_list.append(str(pairs[coin]))
     log_list.append(str(balance_ALTcoin_dict[coin]))
