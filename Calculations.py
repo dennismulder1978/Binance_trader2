@@ -60,6 +60,22 @@ def buy_sell_action_log(stringer):
     return
 
 
+def error_log(stringer):
+    try:
+        open('Secret/error.csv')
+    except FileNotFoundError:
+        with open('Secret/error.csv', 'w') as g:
+            g.write('Action,' +
+                    'Pair,' +
+                    'Error,' +
+                    'DateTime\n')
+            g.close()
+    with open('Secret/error.csv', 'a') as f:
+        f.write(stringer + '\n')
+        f.close()
+    return
+
+
 def buy(pair, buy_amount, altcoin_price):
     try:
         buy_order = client.order_market_buy(symbol=pair, quoteOrderQty=buy_amount)
@@ -67,7 +83,7 @@ def buy(pair, buy_amount, altcoin_price):
         print('Action = Buy')
         return 'Buy'
     except Exception as e:
-        buy_sell_action_log(f'Buy failed,{pair},{altcoin_price},BASEcoin {buy_amount},{datetime.now()},{e}')
+        error_log(f'Buy failed in function,{pair},{e},{datetime.now()}')
         print(f'Buy failed - {e}')
         return f'Buy failed - {e}'
 
@@ -79,6 +95,6 @@ def sell(pair, balance_altcoin, altcoin_price):
         print('Action = Sell')
         return 'Sell'
     except Exception as e:
-        buy_sell_action_log(f'Sell failed,{pair},{altcoin_price},ALTcoin {balance_altcoin},{datetime.now()},{e}')
+        error_log(f'Sell failed in function,{pair},{e},{datetime.now()}')
         print(f'Sell failed - {e}')
         return f'Sell failed - {e}'

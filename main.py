@@ -1,5 +1,5 @@
 from Secret import Constants
-from Calculations import ma_trade_logic, ma, log, buy, sell
+from Calculations import ma_trade_logic, ma, log, buy, sell, error_log
 from binance import Client
 from datetime import datetime
 import sys
@@ -84,9 +84,15 @@ if balance_BASEcoin > 10:
 for coin in symbol_altcoin_list:
     log_list = []
     if (ma_6[pairs[coin]] >= ma_18[pairs[coin]]) & (balance_ALTcoin_dict[coin] == 0) & (balance_BASEcoin != 0):
-        log_list.append(buy(pairs[coin], buy_amount, altcoin_price[coin]))  # Buy order
+        try:
+            log_list.append(buy(pairs[coin], buy_amount, altcoin_price[pairs[coin]]))  # Buy order
+        except Exception as e:
+            error_log(f'Buy,{pairs[coin]},{e},{datetime.now()}')
     elif (ma_6[pairs[coin]] < ma_18[pairs[coin]]) & (balance_ALTcoin_dict[coin] != 0):
-        log_list.append(sell(pairs[coin], balance_ALTcoin_dict[coin], altcoin_price[coin]))  # sell order
+        try:
+            log_list.append(sell(pairs[coin], balance_ALTcoin_dict[coin], altcoin_price[pairs[coin]]))  # sell order
+        except Exception as e:
+            error_log(f'Sell,{pairs[coin]},{e},{datetime.now()}')
     else:
         log_list.append('No action')
         print('Action = Do nothing')
