@@ -1,6 +1,5 @@
 import sys
 from functions import *
-from datetime import datetime
 
 
 # Command Line Argument
