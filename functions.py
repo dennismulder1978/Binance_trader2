@@ -22,6 +22,7 @@ def ma(pair: str, ma_a: int, ma_b: int, interval: str):
     except Exception as e:
         print(e)
         result_a = 0
+
     try:
         result_b = round(sum(short_list_b) / len(short_list_b), 4)
     except Exception as e:
