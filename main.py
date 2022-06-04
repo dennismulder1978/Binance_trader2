@@ -1,5 +1,5 @@
 import sys
-from functions import ma_trade_logic, ma, log, buy, sell, error_log, buy_sell_action_log, balance
+from functions import balance, price, ma, log, buy, sell, error_log, buy_sell_action_log
 from datetime import datetime
 
 
@@ -41,11 +41,12 @@ for each in balance_ALTcoin_dict:
 ma_a = {}
 ma_b = {}
 for each in symbol_altcoin_list:
-    ma_a[pairs[each]], ma_b[pairs[each]] = ma(pairs[each], 3, 12)
+    ma_a[pairs[each]], ma_b[pairs[each]] = ma(pairs[each], 3, 12, '15m')
 
 print(ma_a)
 print(ma_b)
 
+price('BTCBUSD')
 
 # # ALT-BASE price
 # prices = client.get_all_tickers()

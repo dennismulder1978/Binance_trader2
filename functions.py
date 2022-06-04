@@ -8,14 +8,41 @@ def balance(symbol: str):
     return float(client.get_asset_balance(asset=symbol)['free'])
 
 
-def ma_trade_logic(pair):
-    bar_list = client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
-    return [float(i[4]) for i in bar_list]  # list of pos[4] (is closing price) per time period, also str to float
+def price(coin_pair: str):
+    return float(client.get_ticker(symbol=coin_pair)['lastPrice'])
+
+    # prices = client.get_ticker(symbol=pair)
+    # altcoin_price = {}
+    # for each in prices:
+    #     if each['symbol'] == pair:
+    #         return float(each['symbol'])
+    #
 
 
-def ma(pair: str, ma_a: int, ma_b: int):
-    closing_list = ma_trade_logic(pair)
-    input_list = closing_list[:-1]  # pop off last (=incomplete) time-period
+def ma_trade_logic(pair: str, interval: str):
+    interval_choices = {
+        '1m': 'Client.KLINE_INTERVAL_1MINUTE',
+        '3m': 'Client.KLINE_INTERVAL_3MINUTE',
+        '5m': 'Client.KLINE_INTERVAL_5MINUTE',
+        '15m': 'Client.KLINE_INTERVAL_15MINUTE',
+        '30m': 'Client.KLINE_INTERVAL_30MINUTE',
+        '1h': 'Client.KLINE_INTERVAL_1HOUR',
+        '2h': 'Client.KLINE_INTERVAL_2HOUR',
+        '4h': 'Client.KLINE_INTERVAL_4HOUR',
+        '6h': 'Client.KLINE_INTERVAL_6HOUR',
+        '8h': 'Client.KLINE_INTERVAL_8HOUR',
+        '12h': 'Client.KLINE_INTERVAL_12HOUR',
+        '1d': 'Client.KLINE_INTERVAL_1DAY',
+        '3d': 'Client.KLINE_INTERVAL_3DAY',
+        '1w': 'Client.KLINE_INTERVAL_1WEEK',
+        '1M': 'Client.KLINE_INTERVAL_1MONTH'
+    }
+    return [float(i[4]) for i in client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")]
+    # list of pos[4] (is closing price) per time period, also str to float
+
+
+def ma(pair: str, ma_a: int, ma_b: int, interval: str):
+    input_list = ma_trade_logic(pair, interval)[:-1]
     short_list_a = input_list[-ma_a::]  # shorten list to requested length
     short_list_b = input_list[-ma_b::]  # shorten list to requested length
 
@@ -30,13 +57,6 @@ def ma(pair: str, ma_a: int, ma_b: int):
         print(e)
         result_b = 0
     return result_a, result_b
-
-
-def ma_trade_logic(pair):
-    bar_list = client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
-    return [float(i[4]) for i in bar_list]  # list of pos[4] (is closing price) per time period, also str to float
-
-
 
 
 def log(log_list):
