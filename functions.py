@@ -4,28 +4,47 @@ from datetime import datetime
 client = Client(Constants.api_key, Constants.api_secret)
 
 
+def balance(symbol: str):
+    return float(client.get_asset_balance(asset=symbol)['free'])
+
+
 def ma_trade_logic(pair):
-    bar_list = client.get_historical_klines(pair, Client.KLINE_INTERVAL_5MINUTE, "1 day ago UTC")
+    bar_list = client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
     return [float(i[4]) for i in bar_list]  # list of pos[4] (is closing price) per time period, also str to float
 
 
-def ma(input_list, length):
-    input_list = input_list[:-1]  # pop off last (=incomplete) time-period
-    short_list = input_list[-length::]  # shorten list to requested length
+def ma(pair: str, ma_a: int, ma_b: int):
+    closing_list = ma_trade_logic(pair)
+    input_list = closing_list[:-1]  # pop off last (=incomplete) time-period
+    short_list_a = input_list[-ma_a::]  # shorten list to requested length
+    short_list_b = input_list[-ma_b::]  # shorten list to requested length
+
     try:
-        result = sum(short_list)/len(short_list)
+        result_a = round(sum(short_list_a)/len(short_list_a), 4)
     except Exception as e:
         print(e)
-        result = 0
-    return result
+        result_a = 0
+    try:
+        result_b = round(sum(short_list_b) / len(short_list_b), 4)
+    except Exception as e:
+        print(e)
+        result_b = 0
+    return result_a, result_b
+
+
+def ma_trade_logic(pair):
+    bar_list = client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")
+    return [float(i[4]) for i in bar_list]  # list of pos[4] (is closing price) per time period, also str to float
+
+
 
 
 def log(log_list):
     final_string = ",".join(log_list)
     try:
-        open('Secret/log.csv')
+        open('/home/pi/multitrade/Secret/log.csv')
     except FileNotFoundError:
-        with open('Secret/log.csv', 'w') as g:
+        with open('/home/pi/multitrade/Secret/log.csv', 'w') as g:
             g.write("Action," +
                     "Pair," +
                     "Balances ALTcoin," +
@@ -36,7 +55,7 @@ def log(log_list):
                     "balance BASE_coin," +
                     "datetime\n")
             g.close()
-    with open('Secret/log.csv', 'a') as f:
+    with open('/home/pi/multitrade/Secret/log.csv', 'a') as f:
         f.write(final_string + '\n')
         f.close()
     return
@@ -44,9 +63,9 @@ def log(log_list):
 
 def buy_sell_action_log(stringer):
     try:
-        open('Secret/action.csv')
+        open('/home/pi/multitrade/Secret/action.csv')
     except FileNotFoundError:
-        with open('Secret/action.csv', 'w') as g:
+        with open('/home/pi/multitrade/Secret/action.csv', 'w') as g:
             g.write('Action,' +
                     'Pair,' +
                     'Altcoin price,' +
@@ -54,7 +73,7 @@ def buy_sell_action_log(stringer):
                     'DateTime,' +
                     'Error\n')
             g.close()
-    with open('Secret/action.csv', 'a') as f:
+    with open('/home/pi/multitrade/Secret/action.csv', 'a') as f:
         f.write(stringer + '\n')
         f.close()
     return
@@ -62,15 +81,15 @@ def buy_sell_action_log(stringer):
 
 def error_log(stringer):
     try:
-        open('Secret/error.csv')
+        open('/home/pi/multitrade/Secret/error.csv')
     except FileNotFoundError:
-        with open('Secret/error.csv', 'w') as g:
+        with open('/home/pi/multitrade/Secret/error.csv', 'w') as g:
             g.write('Action,' +
                     'Pair,' +
                     'Error,' +
                     'DateTime\n')
             g.close()
-    with open('Secret/error.csv', 'a') as f:
+    with open('/home/pi/multitrade/Secret/error.csv', 'a') as f:
         f.write(stringer + '\n')
         f.close()
     return
