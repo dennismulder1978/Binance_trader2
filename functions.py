@@ -13,7 +13,6 @@ def price(coin_pair: str):
 
 
 def ma(pair: str, ma_a: int, ma_b: int, interval: str):
-
     interval_choices = {
         '1m': 'Client.KLINE_INTERVAL_1MINUTE',
         '3m': 'Client.KLINE_INTERVAL_3MINUTE',
@@ -31,7 +30,7 @@ def ma(pair: str, ma_a: int, ma_b: int, interval: str):
         '1w': 'Client.KLINE_INTERVAL_1WEEK',
         '1M': 'Client.KLINE_INTERVAL_1MONTH'
     }
-
+    inter = interval_choices[interval]
     input_list = [float(i[4]) for i in client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")]
     input_list = input_list[:-1]
     short_list_a = input_list[-ma_a::]  # shorten list to requested length
@@ -67,7 +66,7 @@ def fraction_basecoin(pairs: dict, balance_BASEcoin: float, balance_ALTcoins: di
 def buy_sell_action(action: str, pair: str, amount, price: float):
     if action.upper() == 'BUY':
         try:
-            # client.order_market_buy(symbol=pair, quoteOrderQty=amount)
+            client.order_market_buy(symbol=pair, quoteOrderQty=amount)
             log(f'Buy,{pair},{amount},{price},none', 'log')
             log(f'Buy,{pair},{amount},{price},none', 'action')
             return f'Action = Buy {pair}'
@@ -77,7 +76,7 @@ def buy_sell_action(action: str, pair: str, amount, price: float):
             return f'Buy failed - {pair} - {e}'
     elif action.upper() == 'SELL':
         try:
-            # client.order_market_sell(symbol=pair, quantity=amount)
+            client.order_market_sell(symbol=pair, quantity=amount)
             log(f'Sell,{pair},{amount},{price},none', 'log')
             log(f'Sell,{pair},{amount},{price},none', 'action')
             return f'Action = Sell {pair}'
