@@ -11,15 +11,9 @@ def balance(symbol: str):
 def price(coin_pair: str):
     return float(client.get_ticker(symbol=coin_pair)['lastPrice'])
 
-    # prices = client.get_ticker(symbol=pair)
-    # altcoin_price = {}
-    # for each in prices:
-    #     if each['symbol'] == pair:
-    #         return float(each['symbol'])
-    #
 
+def ma(pair: str, ma_a: int, ma_b: int, interval: str):
 
-def ma_trade_logic(pair: str, interval: str):
     interval_choices = {
         '1m': 'Client.KLINE_INTERVAL_1MINUTE',
         '3m': 'Client.KLINE_INTERVAL_3MINUTE',
@@ -37,12 +31,9 @@ def ma_trade_logic(pair: str, interval: str):
         '1w': 'Client.KLINE_INTERVAL_1WEEK',
         '1M': 'Client.KLINE_INTERVAL_1MONTH'
     }
-    return [float(i[4]) for i in client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")]
-    # list of pos[4] (is closing price) per time period, also str to float
 
-
-def ma(pair: str, ma_a: int, ma_b: int, interval: str):
-    input_list = ma_trade_logic(pair, interval)[:-1]
+    input_list = [float(i[4]) for i in client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")]
+    input_list = input_list[:-1]
     short_list_a = input_list[-ma_a::]  # shorten list to requested length
     short_list_b = input_list[-ma_b::]  # shorten list to requested length
 
@@ -59,81 +50,58 @@ def ma(pair: str, ma_a: int, ma_b: int, interval: str):
     return result_a, result_b
 
 
-def log(log_list):
-    final_string = ",".join(log_list)
+def fraction_basecoin(pairs: dict, balance_BASEcoin: float, balance_ALTcoins: dict):
+    pair_count = len(pairs)
+    buy_amount = 0
+    if (balance_BASEcoin > 10) & (pair_count > 0):
+        for coin in balance_ALTcoins:
+            if balance_ALTcoins[coin] != 0:
+                pair_count -= 1
+        try:
+            buy_amount = int(balance_BASEcoin / pair_count)
+        except Exception as e:
+            print(e)
+    return buy_amount
+
+
+def buy_sell_action(action: str, pair: str, amount, price: float):
+    if action.upper() == 'BUY':
+        try:
+            # client.order_market_buy(symbol=pair, quoteOrderQty=amount)
+            log(f'Buy,{pair},{amount},{price},none', 'log')
+            log(f'Buy,{pair},{amount},{price},none', 'action')
+            return f'Action = Buy {pair}'
+        except Exception as e:
+            log(f'Buy failed,{pair},{amount},{price},{e}', 'log')
+            log(f'Buy failed,{pair},{amount},{price},{e}', 'error')
+            return f'Buy failed - {pair} - {e}'
+    elif action.upper() == 'SELL':
+        try:
+            # client.order_market_sell(symbol=pair, quantity=amount)
+            log(f'Sell,{pair},{amount},{price},none', 'log')
+            log(f'Sell,{pair},{amount},{price},none', 'action')
+            return f'Action = Sell {pair}'
+        except Exception as e:
+            log(f'Sell failed,{pair},{amount},{price},{e}', 'log')
+            log(f'Sell failed,{pair},{amount},{price},{e}', 'error')
+            return f'Sell failed - {pair} - {e}'
+
+
+def log(stringer: str, name: str):
+    file = f'{name}.csv'
     try:
-        open('/home/pi/multitrade/Secret/log.csv')
+        open(file)
     except FileNotFoundError:
-        with open('/home/pi/multitrade/Secret/log.csv', 'w') as g:
+        with open(file, 'w') as g:
             g.write("Action," +
                     "Pair," +
-                    "Balances ALTcoin," +
-                    "Altcoin price," +
-                    "MA_6h," +
-                    "MA_18h," +
-                    "Buy amount," +
-                    "balance BASE_coin," +
-                    "datetime\n")
+                    "Quantity," +
+                    "Price," +
+                    "Error," +
+                    "datetime" +
+                    "\n")
             g.close()
-    with open('/home/pi/multitrade/Secret/log.csv', 'a') as f:
-        f.write(final_string + '\n')
+    with open(file, 'a') as f:
+        f.write(stringer + f',{datetime.now()}\n')
         f.close()
     return
-
-
-def buy_sell_action_log(stringer):
-    try:
-        open('/home/pi/multitrade/Secret/action.csv')
-    except FileNotFoundError:
-        with open('/home/pi/multitrade/Secret/action.csv', 'w') as g:
-            g.write('Action,' +
-                    'Pair,' +
-                    'Altcoin price,' +
-                    'Quantity,' +
-                    'DateTime,' +
-                    'Error\n')
-            g.close()
-    with open('/home/pi/multitrade/Secret/action.csv', 'a') as f:
-        f.write(stringer + '\n')
-        f.close()
-    return
-
-
-def error_log(stringer):
-    try:
-        open('/home/pi/multitrade/Secret/error.csv')
-    except FileNotFoundError:
-        with open('/home/pi/multitrade/Secret/error.csv', 'w') as g:
-            g.write('Action,' +
-                    'Pair,' +
-                    'Error,' +
-                    'DateTime\n')
-            g.close()
-    with open('/home/pi/multitrade/Secret/error.csv', 'a') as f:
-        f.write(stringer + '\n')
-        f.close()
-    return
-
-
-def buy(pair, buy_amount, altcoin_price):
-    try:
-        buy_order = client.order_market_buy(symbol=pair, quoteOrderQty=buy_amount)
-        buy_sell_action_log(f'Buy,{pair},{altcoin_price},BASEcoin {buy_amount},{datetime.now()},none')
-        print('Action = Buy')
-        return 'Buy'
-    except Exception as e:
-        error_log(f'Buy failed in function,{pair},{e},{datetime.now()}')
-        print(f'Buy failed - {e}')
-        return f'Buy failed - {e}'
-
-
-def sell(pair, balance_altcoin, altcoin_price):
-    try:
-        sell_order = client.order_market_sell(symbol=pair, quantity=balance_altcoin)
-        buy_sell_action_log(f'Sell,{pair},{altcoin_price},ALTcoin {balance_altcoin},{datetime.now()},none')
-        print('Action = Sell')
-        return 'Sell'
-    except Exception as e:
-        error_log(f'Sell failed in function,{pair},{e},{datetime.now()}')
-        print(f'Sell failed - {e}')
-        return f'Sell failed - {e}'
