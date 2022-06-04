@@ -13,25 +13,7 @@ def price(coin_pair: str):
 
 
 def ma(pair: str, ma_a: int, ma_b: int, interval: str):
-    interval_choices = {
-        '1m': 'Client.KLINE_INTERVAL_1MINUTE',
-        '3m': 'Client.KLINE_INTERVAL_3MINUTE',
-        '5m': 'Client.KLINE_INTERVAL_5MINUTE',
-        '15m': 'Client.KLINE_INTERVAL_15MINUTE',
-        '30m': 'Client.KLINE_INTERVAL_30MINUTE',
-        '1h': 'Client.KLINE_INTERVAL_1HOUR',
-        '2h': 'Client.KLINE_INTERVAL_2HOUR',
-        '4h': 'Client.KLINE_INTERVAL_4HOUR',
-        '6h': 'Client.KLINE_INTERVAL_6HOUR',
-        '8h': 'Client.KLINE_INTERVAL_8HOUR',
-        '12h': 'Client.KLINE_INTERVAL_12HOUR',
-        '1d': 'Client.KLINE_INTERVAL_1DAY',
-        '3d': 'Client.KLINE_INTERVAL_3DAY',
-        '1w': 'Client.KLINE_INTERVAL_1WEEK',
-        '1M': 'Client.KLINE_INTERVAL_1MONTH'
-    }
-    inter = str(interval_choices[interval])
-    input_list = [float(i[4]) for i in client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE)][:-1]
+    input_list = [float(i[4]) for i in client.get_historical_klines(pair, interval=interval)][:-1]
     short_list_a = input_list[-ma_a::]  # shorten list to requested length
     short_list_b = input_list[-ma_b::]  # shorten list to requested length
 
