@@ -30,9 +30,8 @@ def ma(pair: str, ma_a: int, ma_b: int, interval: str):
         '1w': 'Client.KLINE_INTERVAL_1WEEK',
         '1M': 'Client.KLINE_INTERVAL_1MONTH'
     }
-    inter = interval_choices[interval]
-    input_list = [float(i[4]) for i in client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE, "1 day ago UTC")]
-    input_list = input_list[:-1]
+    inter = str(interval_choices[interval])
+    input_list = [float(i[4]) for i in client.get_historical_klines(pair, Client.KLINE_INTERVAL_15MINUTE)][:-1]
     short_list_a = input_list[-ma_a::]  # shorten list to requested length
     short_list_b = input_list[-ma_b::]  # shorten list to requested length
 
